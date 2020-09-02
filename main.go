@@ -8,11 +8,11 @@ import (
 )
 
 type SVC struct {
-	svc.SVC
+	*svc.SVC
 	workers map[string]svc.Worker
 }
 
-func New(s svc.SVC) *SVC {
+func New(s *svc.SVC) *SVC {
 	return &SVC{
 		SVC:     s,
 		workers: map[string]svc.Worker{},
@@ -27,8 +27,6 @@ func (s *SVC) AddWorker(name string, w svc.Worker) {
 // Run runs the service until either receiving an interrupt or a worker
 // terminates.
 func (s *SVC) Run() {
-	s.SVC.Logger().Info("Paring flags")
-
 	parser := flags.NewNamedParser(s.SVC.Name, flags.Default)
 	for name, w := range s.workers {
 		parser.AddGroup(name, "", w)
