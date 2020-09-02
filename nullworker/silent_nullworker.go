@@ -14,20 +14,24 @@ var _ svc.Worker = (*NullWorker)(nil)
 // SNullWorker implements a silent nullworker where all interfaces are implemented
 // so no errors are shown during startup.
 type SNullWorker struct {
-	Ctx       context.Context
-	CtxCancel context.CancelFunc
+	ctx       context.Context
+	ctxCancel context.CancelFunc
+}
+
+func (w *SNullWorker) Ctx() context.Context {
+	return w.ctx
 }
 
 func (w *SNullWorker) Init(*zap.Logger) error {
-	w.Ctx, w.CtxCancel = context.WithCancel(context.Background())
+	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 	return nil
 }
 func (w *SNullWorker) Terminate() error {
-	<-w.Ctx.Done()
+	<-w.ctx.Done()
 	return nil
 }
 func (w *SNullWorker) Run() error {
-	w.CtxCancel()
+	w.ctxCancel()
 	return nil
 }
 

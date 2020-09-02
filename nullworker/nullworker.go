@@ -11,19 +11,23 @@ var _ svc.Worker = (*NullWorker)(nil)
 
 // NullWorker implements a minimal worker controled with contexts.
 type NullWorker struct {
-	Ctx       context.Context
-	CtxCancel context.CancelFunc
+	ctx       context.Context
+	ctxCancel context.CancelFunc
+}
+
+func (w *NullWorker) Ctx() context.Context {
+	return w.ctx
 }
 
 func (w *NullWorker) Init(*zap.Logger) error {
-	w.Ctx, w.CtxCancel = context.WithCancel(context.Background())
+	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 	return nil
 }
 func (w *NullWorker) Terminate() error {
-	<-w.Ctx.Done()
+	<-w.ctx.Done()
 	return nil
 }
 func (w *NullWorker) Run() error {
-	w.CtxCancel()
+	w.ctxCancel()
 	return nil
 }
