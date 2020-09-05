@@ -27,11 +27,11 @@ func (w *SNullWorker) Init(*zap.Logger) error {
 	return nil
 }
 func (w *SNullWorker) Terminate() error {
-	<-w.ctx.Done()
+	w.ctxCancel()
 	return nil
 }
 func (w *SNullWorker) Run() error {
-	w.ctxCancel()
+	<-w.ctx.Done()
 	return nil
 }
 

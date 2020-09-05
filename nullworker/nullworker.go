@@ -24,10 +24,10 @@ func (w *NullWorker) Init(*zap.Logger) error {
 	return nil
 }
 func (w *NullWorker) Terminate() error {
-	<-w.ctx.Done()
+	w.ctxCancel()
 	return nil
 }
 func (w *NullWorker) Run() error {
-	w.ctxCancel()
+	<-w.ctx.Done()
 	return nil
 }
