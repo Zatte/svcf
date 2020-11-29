@@ -5,6 +5,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/voi-oss/svc"
+	"go.uber.org/zap"
 )
 
 type SVC struct {
@@ -29,7 +30,9 @@ func (s *SVC) AddWorker(name string, w svc.Worker) {
 func (s *SVC) Run() {
 	parser := flags.NewNamedParser(s.SVC.Name, flags.Default)
 	for name, w := range s.workers {
-		parser.AddGroup(name, "", w)
+		if _, err := parser.AddGroup(name, "", w); err != nil {
+			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
+		}
 	}
 	_, err := parser.Parse()
 	parser.WriteHelp(os.Stdout)
