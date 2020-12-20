@@ -10,13 +10,15 @@ import (
 
 type SVC struct {
 	*svc.SVC
-	workers map[string]svc.Worker
+	workers    map[string]svc.Worker
+	flagGroups map[string]interface{}
 }
 
 func New(s *svc.SVC) *SVC {
 	return &SVC{
-		SVC:     s,
-		workers: map[string]svc.Worker{},
+		SVC:        s,
+		workers:    map[string]svc.Worker{},
+		flagGroups: map[string]interface{}{},
 	}
 }
 
@@ -25,11 +27,21 @@ func (s *SVC) AddWorker(name string, w svc.Worker) {
 	s.SVC.AddWorker(name, w)
 }
 
+func (s *SVC) AddFlagGroup(name string, fg interface{}) {
+	s.flagGroups[name] = fg
+}
+
 // Run runs the service until either receiving an interrupt or a worker
 // terminates.
 func (s *SVC) Run() {
 	parser := flags.NewNamedParser(s.SVC.Name, flags.Default)
 	for name, w := range s.workers {
+		if _, err := parser.AddGroup(name, "", w); err != nil {
+			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
+		}
+	}
+
+	for name, w := range s.flagGroups {
 		if _, err := parser.AddGroup(name, "", w); err != nil {
 			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
 		}
