@@ -2,6 +2,7 @@ package nullworker
 
 import (
 	"context"
+	"sync"
 
 	"github.com/voi-oss/svc"
 	"go.uber.org/zap"
@@ -14,6 +15,7 @@ type NullWorker struct {
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 	logger    *zap.Logger
+	WG        sync.WaitGroup
 }
 
 func (w *NullWorker) Ctx() context.Context {
@@ -31,6 +33,7 @@ func (w *NullWorker) Init(l *zap.Logger) error {
 }
 func (w *NullWorker) Terminate() error {
 	w.ctxCancel()
+	w.WG.Wait()
 	return nil
 }
 func (w *NullWorker) Run() error {
