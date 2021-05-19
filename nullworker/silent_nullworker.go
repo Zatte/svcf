@@ -16,14 +16,21 @@ var _ svc.Worker = (*NullWorker)(nil)
 type SNullWorker struct {
 	ctx       context.Context
 	ctxCancel context.CancelFunc
+
+	logger *zap.Logger
 }
 
 func (w *SNullWorker) Ctx() context.Context {
 	return w.ctx
 }
 
-func (w *SNullWorker) Init(*zap.Logger) error {
+func (w *SNullWorker) Logger() *zap.Logger {
+	return w.logger
+}
+
+func (w *SNullWorker) Init(l *zap.Logger) error {
 	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+	w.logger = l
 	return nil
 }
 func (w *SNullWorker) Terminate() error {
