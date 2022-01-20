@@ -19,6 +19,9 @@ type NullWorker struct {
 }
 
 func (w *NullWorker) Ctx() context.Context {
+	if w.ctx == nil {
+		w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+	}
 	return w.ctx
 }
 
@@ -27,7 +30,9 @@ func (w *NullWorker) Logger() *zap.Logger {
 }
 
 func (w *NullWorker) Init(l *zap.Logger) error {
-	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+	if w.ctx == nil {
+		w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+	}
 	w.logger = l
 	return nil
 }
