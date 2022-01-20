@@ -12,6 +12,7 @@ var _ svc.Worker = (*NullWorker)(nil)
 
 // NullWorker implements a minimal worker controled with contexts.
 type NullWorker struct {
+	mu        sync.Mutex
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 	logger    *zap.Logger
@@ -20,23 +21,33 @@ type NullWorker struct {
 
 func (w *NullWorker) Ctx() context.Context {
 	if w.ctx == nil {
-		w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		if w.ctx == nil {
+			w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+		}
 	}
 	return w.ctx
 }
 
 func (w *NullWorker) Logger() *zap.Logger {
 	if w.logger == nil {
-		l, err := zap.NewProduction()
-		if err != nil {
-			panic(err)
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		if w.logger == nil {
+			l, err := zap.NewProduction()
+			if err != nil {
+				panic(err)
+			}
+			return l
 		}
-		return l
 	}
 	return w.logger
 }
 
 func (w *NullWorker) Init(l *zap.Logger) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	if w.ctx == nil {
 		w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 	}
