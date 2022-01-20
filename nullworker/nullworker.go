@@ -26,6 +26,13 @@ func (w *NullWorker) Ctx() context.Context {
 }
 
 func (w *NullWorker) Logger() *zap.Logger {
+	if w.logger == nil {
+		l, err := zap.NewProduction()
+		if err != nil {
+			panic(err)
+		}
+		return l
+	}
 	return w.logger
 }
 
