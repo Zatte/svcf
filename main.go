@@ -39,12 +39,18 @@ func (s *SVC) Run() {
 		if _, err := parser.AddGroup(name, "", w); err != nil {
 			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
 		}
+		// Needed to parse all instances of the same config; otherwise only the last object
+		// containing a flag entry will be populated.
+		parser.Parse()
 	}
 
 	for name, w := range s.flagGroups {
 		if _, err := parser.AddGroup(name, "", w); err != nil {
 			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
 		}
+		// Needed to parse all instances of the same config; otherwise only the last object
+		// containing a flag entry will be populated.
+		parser.Parse()
 	}
 	_, err := parser.Parse()
 	parser.WriteHelp(os.Stdout)
