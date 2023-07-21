@@ -41,7 +41,9 @@ func (s *SVC) Run() {
 		}
 		// Needed to parse all instances of the same config; otherwise only the last object
 		// containing a flag entry will be populated.
-		parser.Parse()
+		if _, err := parser.Parse(); err != nil {
+			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
+		}
 	}
 
 	for name, w := range s.flagGroups {
@@ -50,7 +52,9 @@ func (s *SVC) Run() {
 		}
 		// Needed to parse all instances of the same config; otherwise only the last object
 		// containing a flag entry will be populated.
-		parser.Parse()
+		if _, err := parser.Parse(); err != nil {
+			s.Logger().Error("flagparsing", zap.String("modudle_name", name), zap.Error(err))
+		}
 	}
 	_, err := parser.Parse()
 	parser.WriteHelp(os.Stdout)
