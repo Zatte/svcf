@@ -1,6 +1,7 @@
 package svcf
 
 import (
+	"io"
 	"os"
 
 	"github.com/jessevdk/go-flags"
@@ -12,21 +13,36 @@ type SVC struct {
 	*svc.SVC
 	workers    map[string]svc.Worker
 	flagGroups map[string]interface{}
+
+	// options
+	flagHelpOut io.Writer
 }
 
-func New(s *svc.SVC) *SVC {
-	return &SVC{
+func New(s *svc.SVC, options ...SVCFOption) *SVC {
+	svcRes := &SVC{
 		SVC:        s,
 		workers:    map[string]svc.Worker{},
 		flagGroups: map[string]interface{}{},
+
+		flagHelpOut: os.Stdout,
 	}
+
+	for _, option := range options {
+		option(svcRes)
+	}
+
+	return svcRes
 }
 
+// Adds a worker which also gets flags parsing for config management through
+// github.com/jessevdk/go-flags
 func (s *SVC) AddWorker(name string, w svc.Worker) {
 	s.workers[name] = w
 	s.SVC.AddWorker(name, w)
 }
 
+// AddFlagGroup adds a flag group to the service without it requiring to be a worker.
+// useful to get consistent flag parsing for multiple modules.
 func (s *SVC) AddFlagGroup(name string, fg interface{}) {
 	s.flagGroups[name] = fg
 }
@@ -57,7 +73,7 @@ func (s *SVC) Run() {
 		}
 	}
 	_, err := parser.Parse()
-	parser.WriteHelp(os.Stdout)
+	parser.WriteHelp(s.flagHelpOut)
 	if err != nil {
 		code := 1
 		if fe, ok := err.(*flags.Error); ok {
