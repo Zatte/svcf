@@ -19,10 +19,20 @@ type NullWorker struct {
 	WG        sync.WaitGroup
 }
 
+func NewNullWorker() *NullWorker {
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	res := &NullWorker{
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
+	}
+	return res
+}
+
 func (w *NullWorker) Ctx() context.Context {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
 	if w.ctx == nil {
-		w.mu.Lock()
-		defer w.mu.Unlock()
 		if w.ctx == nil {
 			w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 		}
@@ -31,9 +41,10 @@ func (w *NullWorker) Ctx() context.Context {
 }
 
 func (w *NullWorker) Logger() *zap.Logger {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
 	if w.logger == nil {
-		w.mu.Lock()
-		defer w.mu.Unlock()
 		if w.logger == nil {
 			l, err := zap.NewProduction()
 			if err != nil {
@@ -48,18 +59,23 @@ func (w *NullWorker) Logger() *zap.Logger {
 func (w *NullWorker) Init(l *zap.Logger) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+
 	if w.ctx == nil {
 		w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 	}
 	w.logger = l
 	return nil
 }
+
 func (w *NullWorker) Terminate() error {
-	w.ctxCancel()
+	if w.ctxCancel != nil {
+		w.ctxCancel()
+	}
 	w.WG.Wait()
 	return nil
 }
+
 func (w *NullWorker) Run() error {
-	<-w.ctx.Done()
+	<-w.Ctx().Done()
 	return nil
 }

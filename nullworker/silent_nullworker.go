@@ -14,7 +14,17 @@ type SNullWorker struct {
 	*NullWorker
 }
 
+func NewSNullWorker() *SNullWorker {
+	return &SNullWorker{
+		NullWorker: NewNullWorker(),
+	}
+}
+
 func (w *SNullWorker) Healthy() error {
+	return nil
+}
+
+func (w *SNullWorker) Alive() error {
 	return nil
 }
 
