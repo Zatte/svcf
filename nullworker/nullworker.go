@@ -19,13 +19,18 @@ type NullWorker struct {
 	WG        sync.WaitGroup
 }
 
-func NewNullWorker() *NullWorker {
+func New() *NullWorker {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	res := &NullWorker{
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 	}
 	return res
+}
+
+// NewNullWorker is Deprecated: use New instead.
+func NewNullWorker() *NullWorker {
+	return New()
 }
 
 func (w *NullWorker) Ctx() context.Context {

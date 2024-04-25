@@ -2,11 +2,14 @@ package sentryworker
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/voi-oss/svc"
 	"github.com/zatte/svcf/nullworker"
 	"go.uber.org/zap"
 )
+
+var ErrTerminateCalled = fmt.Errorf("terminate called")
 
 // SentryWorker allows for limited introspecting of the worker life-cycle.
 // this is  mostly useful in testing where you need to know if workers have
@@ -31,7 +34,7 @@ type SentryWorker struct {
 // nullworker is created.
 func New(maybeWorker svc.Worker) *SentryWorker {
 	if maybeWorker == nil {
-		maybeWorker = nullworker.NewNullWorker()
+		maybeWorker = nullworker.New()
 	}
 	return &SentryWorker{
 		Worker:   maybeWorker,
@@ -126,6 +129,8 @@ func (w *SentryWorker) WaitForInitDone(ctx context.Context) error {
 		return w.initErr
 	case <-ctx.Done():
 		return context.Cause(ctx)
+	case <-w.terminateCalled:
+		return ErrTerminateCalled
 	}
 }
 
@@ -137,6 +142,8 @@ func (w *SentryWorker) WaitForRunCalled(ctx context.Context) error {
 		return nil
 	case <-ctx.Done():
 		return context.Cause(ctx) //nolint:wrapcheck
+	case <-w.terminateCalled:
+		return ErrTerminateCalled
 	}
 }
 
@@ -148,6 +155,8 @@ func (w *SentryWorker) WaitForRunCompleted(ctx context.Context) error {
 		return w.runErr
 	case <-ctx.Done():
 		return context.Cause(ctx) //nolint:wrapcheck
+	case <-w.terminateCalled:
+		return ErrTerminateCalled
 	}
 }
 

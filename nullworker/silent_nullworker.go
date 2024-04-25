@@ -16,7 +16,7 @@ type SNullWorker struct {
 
 func NewSNullWorker() *SNullWorker {
 	return &SNullWorker{
-		NullWorker: NewNullWorker(),
+		NullWorker: New(),
 	}
 }
 
